@@ -10,7 +10,7 @@ import SecureAndFairGaming from "./pages/SecureAndFairGaming";
 
 function App() {
   return (
-    <Router>
+    <Router basename="/NightPulseStudio">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/games" element={<Games />} />

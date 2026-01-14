@@ -22,6 +22,13 @@ export default function useHomeEffects() {
     const progress = document.getElementById("loader-progress");
 
     let value = 0;
+    let preloaderTimeout;
+
+    const hidePreloader = () => {
+      if (preloader && !preloader.classList.contains("loaded")) {
+        preloader.classList.add("loaded");
+      }
+    };
 
     const interval = setInterval(() => {
       value += Math.random() * 15;
@@ -35,12 +42,26 @@ export default function useHomeEffects() {
 
         // Small delay for smooth exit
         setTimeout(() => {
-          if (preloader) {
-            preloader.classList.add("loaded");
-          }
+          hidePreloader();
         }, 300);
       }
     }, 120);
+
+    // Fallback: Force hide preloader after 3 seconds max
+    preloaderTimeout = setTimeout(() => {
+      clearInterval(interval);
+      if (progress) {
+        progress.style.width = "100%";
+      }
+      hidePreloader();
+    }, 3000);
+
+    // Hide preloader when page fully loads
+    window.addEventListener("load", () => {
+      clearTimeout(preloaderTimeout);
+      clearInterval(interval);
+      hidePreloader();
+    });
 
     /* =============================
        REVEAL ANIMATION ON SCROLL
@@ -70,6 +91,7 @@ export default function useHomeEffects() {
     return () => {
       document.removeEventListener("mousemove", moveCursor);
       clearInterval(interval);
+      clearTimeout(preloaderTimeout);
       observer.disconnect();
     };
   }, []);
