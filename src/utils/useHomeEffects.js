@@ -3,6 +3,47 @@ import { useEffect } from "react";
 export default function useHomeEffects() {
   useEffect(() => {
     /* =============================
+       PRELOADER - SIMPLE AND RELIABLE
+    ============================= */
+    const preloader = document.getElementById("preloader");
+    const progress = document.getElementById("loader-progress");
+
+    // Start progress animation
+    let value = 0;
+    const interval = setInterval(() => {
+      value += Math.random() * 20;
+      if (value > 100) value = 100;
+      
+      if (progress) {
+        progress.style.width = `${value}%`;
+      }
+
+      // When progress reaches 100%, hide preloader
+      if (value >= 100) {
+        clearInterval(interval);
+        
+        // Hide preloader after short delay
+        setTimeout(() => {
+          if (preloader) {
+            preloader.style.opacity = "0";
+            preloader.style.pointerEvents = "none";
+            preloader.classList.add("loaded");
+          }
+        }, 500);
+      }
+    }, 100);
+
+    // Force hide preloader after 2 seconds max
+    const forceHideTimer = setTimeout(() => {
+      clearInterval(interval);
+      if (preloader) {
+        preloader.style.opacity = "0";
+        preloader.style.pointerEvents = "none";
+        preloader.classList.add("loaded");
+      }
+    }, 2000);
+
+    /* =============================
        CUSTOM CURSOR
     ============================= */
     const cursor = document.getElementById("cursor");
@@ -14,54 +55,6 @@ export default function useHomeEffects() {
     };
 
     document.addEventListener("mousemove", moveCursor);
-
-    /* =============================
-       PRELOADER FIX (IMPORTANT)
-    ============================= */
-    const preloader = document.getElementById("preloader");
-    const progress = document.getElementById("loader-progress");
-
-    let value = 0;
-    let preloaderTimeout;
-
-    const hidePreloader = () => {
-      if (preloader && !preloader.classList.contains("loaded")) {
-        preloader.classList.add("loaded");
-      }
-    };
-
-    const interval = setInterval(() => {
-      value += Math.random() * 15;
-
-      if (progress) {
-        progress.style.width = `${Math.min(value, 100)}%`;
-      }
-
-      if (value >= 100) {
-        clearInterval(interval);
-
-        // Small delay for smooth exit
-        setTimeout(() => {
-          hidePreloader();
-        }, 300);
-      }
-    }, 120);
-
-    // Fallback: Force hide preloader after 3 seconds max
-    preloaderTimeout = setTimeout(() => {
-      clearInterval(interval);
-      if (progress) {
-        progress.style.width = "100%";
-      }
-      hidePreloader();
-    }, 3000);
-
-    // Hide preloader when page fully loads
-    window.addEventListener("load", () => {
-      clearTimeout(preloaderTimeout);
-      clearInterval(interval);
-      hidePreloader();
-    });
 
     /* =============================
        REVEAL ANIMATION ON SCROLL
@@ -86,12 +79,12 @@ export default function useHomeEffects() {
     });
 
     /* =============================
-       CLEANUP (IMPORTANT)
+       CLEANUP
     ============================= */
     return () => {
       document.removeEventListener("mousemove", moveCursor);
       clearInterval(interval);
-      clearTimeout(preloaderTimeout);
+      clearTimeout(forceHideTimer);
       observer.disconnect();
     };
   }, []);
